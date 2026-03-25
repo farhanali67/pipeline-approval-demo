@@ -1,0 +1,26 @@
+name: Approval Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-approval:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Start
+        run: echo "Starting pipeline..."
+
+      # ⛔ Manual Approval Step
+      - name: Manual Approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: YOUR_GITHUB_USERNAME
+          minimum-approvals: 1
+          issue-title: "Approve Test Pipeline"
+          issue-body: "Click approve to continue"
+
+      - name: After Approval
+        run: echo "✅ Approved! Pipeline continues..."
