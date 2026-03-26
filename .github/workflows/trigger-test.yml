@@ -1,0 +1,129 @@
+name: master job
+on:
+  repository_dispatch:
+    types: [jira-trigger]
+
+permissions:
+  contents: write
+
+jobs:
+  orchestrator:
+    runs-on: self-hosted
+
+    steps:
+
+    # =========================
+    # 0. DEBUG (IMPORTANT)
+    # =========================
+    - name: Print Full Payload
+      run: echo '${{ toJson(github.event.client_payload) }}'
+
+    # =========================
+    # 1. PARSE JSON
+    # =========================
+    - name: Parse Jira Payload
+      run: |
+        echo "APP=${{ github.event.client_payload.applicationName }}" >> $GITHUB_ENV
+        echo "ENV=${{ github.event.client_payload.environment }}" >> $GITHUB_ENV
+
+        echo "DNS_PUBLIC=${{ github.event.client_payload.dns.public }}" >> $GITHUB_ENV
+        echo "DNS_PRIVATE=${{ github.event.client_payload.dns.private }}" >> $GITHUB_ENV
+
+        echo "POSTGRES=${{ github.event.client_payload.database.postgresql }}" >> $GITHUB_ENV
+        echo "MYSQL=${{ github.event.client_payload.database.mysql }}" >> $GITHUB_ENV
+
+        echo "KAFKA=${{ github.event.client_payload.queue.kafka }}" >> $GITHUB_ENV
+        echo "SQS=${{ github.event.client_payload.queue.sqs }}" >> $GITHUB_ENV
+
+    # =========================
+    # 2. VALIDATION
+    # =========================
+    - name: Validate Inputs
+      run: |
+        if [ -z "$APP" ]; then
+          echo "❌ applicationName missing"; exit 1;
+        fi
+
+    # =========================
+    # 3. DNS STAGE
+    # =========================
+    - name: DNS Provisioning
+      run: |
+        echo "🌐 DNS Stage..."
+
+        if [ "$DNS_PUBLIC" = "true" ]; then
+          echo "Creating PUBLIC DNS for $APP-$ENV"
+        fi
+
+        if [ "$DNS_PRIVATE" = "true" ]; then
+          echo "Creating PRIVATE DNS for $APP-$ENV"
+        fi
+
+    # =========================
+    # 4. DATABASE STAGE
+    # =========================
+    - name: Database Setup
+      run: |
+        echo "🗄 Database Stage..."
+
+        if [ "$POSTGRES" = "true" ]; then
+          echo "Creating PostgreSQL DB"
+        fi
+
+        if [ "$MYSQL" = "true" ]; then
+          echo "Creating MySQL DB"
+        fi
+
+    # =========================
+    # 5. QUEUE STAGE
+    # =========================
+    - name: Queue Setup
+      run: |
+        echo "📩 Queue Stage..."
+
+        if [ "$KAFKA" = "true" ]; then
+          echo "Setting up Kafka"
+        fi
+
+        if [ "$SQS" = "true" ]; then
+          echo "Setting up SQS"
+        fi
+
+    # =========================
+    # 6. HELM STAGE
+    # =========================
+    - name: Helm Configuration
+      run: |
+        echo "⚙️ Helm Stage..."
+
+
+    # =========================
+    # 7. JENKINS DSL CREATION
+    # =========================
+    - name: Create Jenkins DSL Job
+      run: |
+        echo "⚙️ Creating Jenkins DSL Job..."
+
+        curl -X POST "${{ secrets.JENKINS_URL }}/generic-webhook-trigger/invoke?token=jira-trigger" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "applicationName": "'"$APP"'",
+          "envName": "'"$ENV"'"
+        }'
+
+    # =========================
+    # 8. TRIGGER JENKINS JOB
+    # =========================
+    - name: Trigger Jenkins Job
+      run: |
+        echo "🚀 Triggering Jenkins Job..."
+
+        curl -X POST "${{ secrets.JENKINS_URL }}/job/${APP}-eks-${ENV}/build" \
+        --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}"
+
+    # =========================
+    # 9. DONE
+    # =========================
+    - name: Complete
+      run: |
+        echo "✅ Platform orchestration completed for $APP in $ENV"
