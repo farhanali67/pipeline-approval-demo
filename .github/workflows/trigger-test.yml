@@ -23,17 +23,14 @@ jobs:
     # =========================
     - name: Parse Jira Payload
       run: |
-        echo "APP=${{ github.event.client_payload.applicationName }}" >> $GITHUB_ENV
-        echo "ENV=${{ github.event.client_payload.environment }}" >> $GITHUB_ENV
-
-        echo "DNS_PUBLIC=${{ github.event.client_payload.dns.public }}" >> $GITHUB_ENV
-        echo "DNS_PRIVATE=${{ github.event.client_payload.dns.private }}" >> $GITHUB_ENV
-
-        echo "POSTGRES=${{ github.event.client_payload.database.postgresql }}" >> $GITHUB_ENV
-        echo "MYSQL=${{ github.event.client_payload.database.mysql }}" >> $GITHUB_ENV
-
-        echo "KAFKA=${{ github.event.client_payload.queue.kafka }}" >> $GITHUB_ENV
-        echo "SQS=${{ github.event.client_payload.queue.sqs }}" >> $GITHUB_ENV
+       echo "APP=${{ github.event.client_payload.data.applicationName }}" >> $GITHUB_ENV
+       echo "ENV=${{ github.event.client_payload.data.environment }}" >> $GITHUB_ENV
+       echo "DNS_PUBLIC=${{ github.event.client_payload.data.dns.public }}" >> $GITHUB_ENV
+       echo "DNS_PRIVATE=${{ github.event.client_payload.data.dns.private }}" >> $GITHUB_ENV
+       echo "POSTGRES=${{ github.event.client_payload.data.database.postgresql }}" >> $GITHUB_ENV
+       echo "MYSQL=${{ github.event.client_payload.data.database.mysql }}" >> $GITHUB_ENV
+       echo "KAFKA=${{ github.event.client_payload.data.queue.kafka }}" >> $GITHUB_ENV
+       echo "SQS=${{ github.event.client_payload.data.queue.sqs }}" >> $GITHUB_ENV
 
     # =========================
     # 2. VALIDATION
