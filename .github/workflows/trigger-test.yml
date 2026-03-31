@@ -105,7 +105,7 @@ jobs:
         ref: main
     - name: Generate values file
       run: |
-         envsubst < helmchart/temp.yaml > helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
+         envsubst < pipeline-approval-demo/helmchart/temp.yaml > pipeline-approval-demo/helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
       
     # =========================
     # 7. JENKINS DSL CREATION
