@@ -124,8 +124,8 @@ jobs:
         git commit -m "Add onboarding config for $APP_NAME ($ENV)"
         git push origin $BRANCH
     - name: Create Pull Request
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #    env:
+  #      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         BRANCH="onboard/${APP_NAME}-${ENV}-${GITHUB_RUN_ID}"
         gh pr create \
