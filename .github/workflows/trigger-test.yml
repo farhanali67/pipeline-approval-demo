@@ -127,7 +127,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-
+        BRANCH="onboard/${APP_NAME}-${ENV}-${GITHUB_RUN_ID}"
         gh pr create \
           --title "Onboard $APP_NAME ($ENV)" \
           --body "Auto-generated onboarding config from Jira payload" \
