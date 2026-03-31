@@ -3,6 +3,7 @@ on:
   repository_dispatch:
     types: [jira-trigger]
 permissions:
+  issues: write   # 🔥 REQUIRED
   contents: write
   pull-requests: write
 
