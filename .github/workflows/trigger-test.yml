@@ -114,23 +114,25 @@ jobs:
       run: |
         helm template $APP_NAME helmchart \
            -f helmchart/env/$ENV/$APP_NAME.yaml
-    - name: Git Commit & Push (Single Step)
+    - name: Git Commit & Push
       run: |
-        APP_NAME=${{ github.event.client_payload.data.applicationName }}
-        ENV=${{ github.event.client_payload.data.environment }}
-
         BRANCH="onboard/${APP_NAME}-${ENV}-${GITHUB_RUN_ID}"
-
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
-
         git checkout -b $BRANCH
-
-        git add pipeline-approval-demo/helmchart/env/$ENV/$APP_NAME.yaml
-    
+        git add helmchart/env/$ENV/$APP_NAME.yaml  
         git commit -m "Add onboarding config for $APP_NAME ($ENV)"
-
         git push origin $BRANCH
+    - name: Create Pull Request
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+
+        gh pr create \
+          --title "Onboard $APP_NAME ($ENV)" \
+          --body "Auto-generated onboarding config from Jira payload" \
+          --base main \
+          --head $BRANCH_NAME
     # =========================
     # 7. JENKINS DSL CREATION
     # =========================
