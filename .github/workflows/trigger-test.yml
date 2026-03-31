@@ -133,6 +133,14 @@ jobs:
           --body "Auto-generated onboarding config from Jira payload" \
           --base main \
           --head $BRANCH
+    - name: Manual Approval
+      uses: trstringer/manual-approval@v1
+      with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: farhanali67   # ✅ your username
+          minimum-approvals: 1
+          issue-title: "Review helmchart values "
+          issue-body: "Approve to continue"
     # =========================
     # 7. JENKINS DSL CREATION
     # =========================
