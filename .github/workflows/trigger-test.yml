@@ -99,6 +99,10 @@ jobs:
     # =========================
     # 6. HELM STAGE
     # =========================
+    - name: Checkout Target Branch
+      uses: actions/checkout@v4
+      with:
+        ref: main
     - name: Generate values file
       run: |
          envsubst < helmchart/temp.yaml > helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
