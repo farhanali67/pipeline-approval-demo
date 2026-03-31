@@ -21,16 +21,26 @@ jobs:
     # =========================
     # 1. PARSE JSON
     # =========================
-    - name: Parse Jira Payload
+    - name: Set Variables from Payload
       run: |
-       echo "APP=${{ github.event.client_payload.data.applicationName }}" >> $GITHUB_ENV
-       echo "ENV=${{ github.event.client_payload.data.environment }}" >> $GITHUB_ENV
-       echo "DNS_PUBLIC=${{ github.event.client_payload.data.dns.public }}" >> $GITHUB_ENV
-       echo "DNS_PRIVATE=${{ github.event.client_payload.data.dns.private }}" >> $GITHUB_ENV
-       echo "POSTGRES=${{ github.event.client_payload.data.database.postgresql }}" >> $GITHUB_ENV
-       echo "MYSQL=${{ github.event.client_payload.data.database.mysql }}" >> $GITHUB_ENV
-       echo "KAFKA=${{ github.event.client_payload.data.queue.kafka }}" >> $GITHUB_ENV
-       echo "SQS=${{ github.event.client_payload.data.queue.sqs }}" >> $GITHUB_ENV
+        echo "APP_NAME=${{ github.event.client_payload.data.applicationName }}" >> $GITHUB_ENV
+        echo "ENV=${{ github.event.client_payload.data.environment }}" >> $GITHUB_ENV
+        echo "NAMESPACE=tapapps" >> $GITHUB_ENV
+        echo "TIER=backend" >> $GITHUB_ENV
+
+        echo "CPU_REQUEST=100m" >> $GITHUB_ENV
+        echo "MEMORY_REQUEST=200Mi" >> $GITHUB_ENV
+        echo "CPU_LIMIT=200m" >> $GITHUB_ENV
+        echo "MEMORY_LIMIT=400Mi" >> $GITHUB_ENV
+        echo "PORT=8080" >> $GITHUB_ENV
+        echo "HEALTH_PATH=/health" >> $GITHUB_ENV
+
+        echo "PUBLIC_INGRESS_ENABLED=${{ github.event.client_payload.data.dns.public }}" >> $GITHUB_ENV
+        echo "PRIVATE_INGRESS_ENABLED=${{ github.event.client_payload.data.dns.private }}" >> $GITHUB_ENV
+
+        echo "INGRESS_HOST=${{ github.event.client_payload.data.applicationName }}.${{ github.event.client_payload.data.environment }}.tap.company.aws" >> $GITHUB_ENV
+
+        echo "INGRESS_PATH=/" >> $GITHUB_ENV
 
     # =========================
     # 2. VALIDATION
