@@ -17,7 +17,7 @@ labels:
 replicaCount: 1
 
 image:
-  repository: ${APP_NAME}
+  repository: ${APP_NAME}-${ENV}
 
 # =========================
 # Resources
