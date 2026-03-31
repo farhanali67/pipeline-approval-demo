@@ -1,0 +1,101 @@
+# =========================
+# App metadata
+# =========================
+appName:
+  name: demo-app
+  namespace: tapapps
+  environment: dev
+
+labels:
+  app: demo-app-deployment
+  name: demo-app
+  instance: demo-app-deployment
+  tier: backend
+
+# =========================
+# Deployment
+# =========================
+replicaCount: 1
+
+image:
+  repository: demo-app
+
+# =========================
+# Resources
+# =========================
+resources:
+  requests:
+    cpu: "100m"
+    memory: "200Mi"
+  limits:
+    cpu: "200m"
+    memory: "400Mi"
+
+# =========================
+# Health Checks
+# =========================
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+
+# =========================
+# Service
+# =========================
+service:
+  type: ClusterIP
+  port: 8080
+
+# =========================
+# Ingress
+# =========================
+ingress:
+  external:
+    enabled: true
+    host: demo-app.dev.tap.company.aws
+    path: /
+    healthcheckPath: /demo
+
+  internal:
+    enabled: false
+    host: demo-app.internal.dev.tap.company.aws
+    path: /
+    healthcheckPath: /
+
+# =========================
+# External Secrets
+# =========================
+externalSecret:
+  enabled: true
+  name: demo-app-aws-secrets
+  namespace: tapapps
+  secretStoreRef:
+    name: aws-parameterstore
+    kind: SecretStore
+  data:
+    - secretKey: MONGO_URI
+      remoteRef:
+        key: DEMO_APP_DEV_MONGO_URI
+    - secretKey: SECRET_KEY
+      remoteRef:
+        key: DEMO_APP_DEV_SECRET_KEY
+
+# =========================
+# ArgoCD
+# =========================
+argocd:
+  name: demo-app
+  enabled: false
+  valueFiles:
+    - env/dev/demo-app.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tapapps
+  syncPolicy:
+    prune: true
+    selfHeal: true

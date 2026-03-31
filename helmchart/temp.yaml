@@ -1,0 +1,98 @@
+# =========================
+# App metadata
+# =========================
+appName:
+  name: ${APP_NAME}
+  namespace: ${NAMESPACE}
+  environment: ${ENV}
+
+labels:
+  app: ${APP_NAME}-deployment
+  name: ${APP_NAME}
+  instance: ${APP_NAME}-deployment
+  tier: ${TIER}
+# =========================
+# Deployment
+# =========================
+replicaCount: 1
+
+image:
+  repository: ${APP_NAME}
+
+# =========================
+# Resources
+# =========================
+resources:
+  requests:
+    cpu: "${CPU_REQUEST}"
+    memory: "${MEMORY_REQUEST}"
+  limits:
+    cpu: "${CPU_LIMIT}"
+    memory: "${MEMORY_LIMIT}"
+
+# =========================
+# Health Checks
+# =========================
+livenessProbe:
+  httpGet:
+    path: ${HEALTH_PATH}
+    port: ${PORT}
+
+readinessProbe:
+  httpGet:
+    path: ${HEALTH_PATH}
+    port: ${PORT}
+
+# =========================
+# Service
+# =========================
+service:
+  type: ClusterIP
+  port: ${PORT}
+
+# =========================
+# Ingress
+# =========================
+ingress:
+  external:
+    enabled: ${PUBLIC_INGRESS_ENABLED}
+    host: ${INGRESS_HOST}
+    path: ${INGRESS_PATH}
+    healthcheckPath: ${HEALTH_PATH}
+  internal:
+    enabled: ${PRIVATE_INGRESS_ENABLED}
+    host: ${INGRESS_HOST}
+    path: ${INGRESS_PATH}
+    healthcheckPath: ${HEALTH_PATH}
+# =========================
+# External Secrets
+# =========================
+externalSecret:
+  enabled: ${SECRET_ENABLED}
+  name: ${APP_NAME}-aws-secrets
+  namespace: ${NAMESPACE}
+  secretStoreRef:
+    name: aws-parameterstore
+    kind: SecretStore
+  data:
+    - secretKey: MONGO_URI
+      remoteRef:
+        key: ${APP_NAME}_${ENV}_MONGO_URI
+    - secretKey: SECRET_KEY
+      remoteRef:
+        key: ${APP_NAME}_${ENV}_SECRET_KEY
+
+# =========================
+# ArgoCD
+# =========================
+argocd:
+  name: ${APP_NAME}
+  enabled: false
+  valueFiles:
+    - env/${ENV}/${APP_NAME}.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ${NAMESPACE}
+  syncPolicy:
+    prune: true
+    selfHeal: true

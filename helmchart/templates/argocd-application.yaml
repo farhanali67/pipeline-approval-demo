@@ -1,0 +1,33 @@
+{{- if .Values.argocd.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Values.argocd.name }}-{{ .Values.appName.environment }}
+  namespace: {{ .Values.argocd.namespace | default "argocd" }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.argocd.name }}-{{ .Values.appName.environment }}
+    
+spec:
+  project: {{ .Values.argocd.project | default "default" }}
+
+  source:
+    repoURL: {{ .Values.argocd.repoURL | default "https://github.com/Tap-Payments/devstack.git"}}
+    targetRevision: {{ .Values.argocd.revision | default "development" }}
+    path: {{ .Values.argocd.path | default "helmchart" }}
+    helm:
+      valueFiles:
+        {{- range .Values.argocd.valueFiles }}
+        - {{ . }}
+        {{- end }}
+
+  destination:
+    server: {{ .Values.argocd.destination.server | default "https://kubernetes.default.svc" }}
+    namespace: {{ .Values.argocd.destination.namespace }}
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: {{ .Values.argocd.syncPolicy.prune | default true }}
+      selfHeal: {{ .Values.argocd.syncPolicy.selfHeal | default true }}
+{{- end }}
