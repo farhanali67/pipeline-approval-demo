@@ -56,14 +56,21 @@ service:
 ingress:
   external:
     enabled: ${PUBLIC_INGRESS_ENABLED}
-    host: ${INGRESS_HOST}
-    path: ${INGRESS_PATH}
+    hosts:
+      - host: ${INGRESS_HOST}
+        paths:
+          - path: ${INGRESS_PATH}
+            pathType: Prefix
     healthcheckPath: ${HEALTH_PATH}
   internal:
     enabled: ${PRIVATE_INGRESS_ENABLED}
-    host: ${INGRESS_HOST}
-    path: ${INGRESS_PATH}
+    hosts:
+      - host: ${INGRESS_HOST}
+        paths:
+          - path: ${INGRESS_PATH}
+            pathType: Prefix
     healthcheckPath: ${HEALTH_PATH}
+
 # =========================
 # External Secrets
 # =========================

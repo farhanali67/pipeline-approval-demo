@@ -1,4 +1,4 @@
-{{- if .Values.ingress.enabled -}}
+{{- if .Values.ingress.internal.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,17 +6,18 @@ metadata:
   namespace: {{ .Values.appName.namespace }}
   labels:
     {{- include "app.labels" . | nindent 4 }}
-  {{- with .Values.ingress.annotations }}
+  {{- with .Values.ingress.internal.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
+    alb.ingress.kubernetes.io/healthcheck-path: {{ default "/" $.Values.ingress.internal.healthcheckPath | quote }}
   {{- end }}
 spec:
-  {{- with .Values.ingress.className }}
+  {{- with .Values.ingress.internal.className }}
   ingressClassName: {{ . }}
   {{- end }}
-  {{- if .Values.ingress.tls }}
+  {{- if .Values.ingress.internal.tls }}
   tls:
-    {{- range .Values.ingress.tls }}
+    {{- range .Values.ingress.internal.tls }}
     - hosts:
         {{- range .hosts }}
         - {{ . | quote }}
@@ -25,7 +26,7 @@ spec:
     {{- end }}
   {{- end }}
   rules:
-    {{- range .Values.ingress.hosts }}
+    {{- range .Values.ingress.internal.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:

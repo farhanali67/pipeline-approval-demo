@@ -23,10 +23,10 @@ image:
   # This sets the pull policy for images.
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: "latest"
   registries:
    dev: 980136594430.dkr.ecr.eu-west-1.amazonaws.com
-   prod: 980136594430.dkr.ecr.eu-west-1.amazonaws.com
+   prod: prod.test.repo
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
@@ -91,6 +91,7 @@ ingress:
   external:
     enabled: false
     healthcheckPath: /
+    className: ""
     annotations:
       kubernetes.io/ingress.class: alb
       alb.ingress.kubernetes.io/scheme: internet-facing
@@ -119,9 +120,9 @@ ingress:
         alb.ingress.kubernetes.io/ssl-redirect: '443'
         alb.ingress.kubernetes.io/force-ssl-redirect: "true"
     hosts:
-        - host: []
+        - host: demo-app.internal.dev.tap.company.aws
           paths:
-          - path: []
+          - path: /
             pathType: Prefix
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

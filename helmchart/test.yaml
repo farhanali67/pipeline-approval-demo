@@ -4,7 +4,7 @@
 appName:
   name: demo-app
   namespace: tapapps
-  environment: dev
+  environment: prod
 
 labels:
   app: demo-app-deployment
@@ -56,16 +56,24 @@ service:
 # =========================
 ingress:
   external:
-    enabled: true
-    host: demo-app.dev.tap.company.aws
-    path: /
+    enabled: false
+    hosts:
+      - host: demo-app.dev.tap.company.aws
+        paths:
+          - path: /
+            pathType: Prefix
     healthcheckPath: /demo
 
+ingress:
   internal:
-    enabled: false
-    host: demo-app.internal.dev.tap.company.aws
-    path: /
-    healthcheckPath: /
+    enabled: true
+    hosts:
+      - host: demo-app.dev.tap.company.aws
+        paths:
+          - path: /
+            pathType: Prefix
+    healthcheckPath: /demo
+
 
 # =========================
 # External Secrets
