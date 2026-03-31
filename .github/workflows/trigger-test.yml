@@ -47,7 +47,7 @@ jobs:
     # =========================
     - name: Validate Inputs
       run: |
-        if [ -z "$APP" ]; then
+        if [ -z "$APP_NAME" ]; then
           echo "❌ applicationName missing"; exit 1;
         fi
 
