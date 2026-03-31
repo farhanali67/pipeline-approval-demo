@@ -99,11 +99,10 @@ jobs:
     # =========================
     # 6. HELM STAGE
     # =========================
-    - name: Helm Configuration
+    - name: Generate values file
       run: |
-        echo "⚙️ Helm Stage..."
-
-
+         envsubst < helmchart/temp.yaml > helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
+      
     # =========================
     # 7. JENKINS DSL CREATION
     # =========================
