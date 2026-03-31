@@ -109,7 +109,7 @@ jobs:
         ls -la
     - name: Generate values file
       run: |
-         envsubst < helmchart/temp.yaml > pipeline-approval-demo/helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
+         envsubst < helmchart/temp.yaml > helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
       
     # =========================
     # 7. JENKINS DSL CREATION
