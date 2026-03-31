@@ -1,0 +1,105 @@
+# =========================
+# App metadata
+# =========================
+appName:
+  name: test-app
+  namespace: tapapps
+  environment: prod
+
+labels:
+  app: test-app-deployment
+  name: test-app
+  instance: test-app-deployment
+  tier: backend
+# =========================
+# Deployment
+# =========================
+replicaCount: 1
+
+image:
+  repository: test-app
+
+# =========================
+# Resources
+# =========================
+resources:
+  requests:
+    cpu: "100m"
+    memory: "200Mi"
+  limits:
+    cpu: "200m"
+    memory: "400Mi"
+
+# =========================
+# Health Checks
+# =========================
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+
+# =========================
+# Service
+# =========================
+service:
+  type: ClusterIP
+  port: 8080
+
+# =========================
+# Ingress
+# =========================
+ingress:
+  external:
+    enabled: true
+    hosts:
+      - host: test-app.prod.tap.company.aws
+        paths:
+          - path: /
+            pathType: Prefix
+    healthcheckPath: /health
+  internal:
+    enabled: true
+    hosts:
+      - host: test-app.prod.tap.company.aws
+        paths:
+          - path: /
+            pathType: Prefix
+    healthcheckPath: /health
+
+# =========================
+# External Secrets
+# =========================
+externalSecret:
+  enabled: 
+  name: test-app-aws-secrets
+  namespace: tapapps
+  secretStoreRef:
+    name: aws-parameterstore
+    kind: SecretStore
+  data:
+    - secretKey: MONGO_URI
+      remoteRef:
+        key: test-app_prod_MONGO_URI
+    - secretKey: SECRET_KEY
+      remoteRef:
+        key: test-app_prod_SECRET_KEY
+
+# =========================
+# ArgoCD
+# =========================
+argocd:
+  name: test-app
+  enabled: false
+  valueFiles:
+    - env/prod/test-app.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tapapps
+  syncPolicy:
+    prune: true
+    selfHeal: true
