@@ -132,7 +132,7 @@ jobs:
           --title "Onboard $APP_NAME ($ENV)" \
           --body "Auto-generated onboarding config from Jira payload" \
           --base main \
-          --head $BRANCH_NAME
+          --head $BRANCH
     # =========================
     # 7. JENKINS DSL CREATION
     # =========================
