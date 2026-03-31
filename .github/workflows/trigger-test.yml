@@ -110,7 +110,10 @@ jobs:
     - name: Generate values file
       run: |
          envsubst < helmchart/temp.yaml > helmchart/env/${{ github.event.client_payload.data.environment }}/${{ github.event.client_payload.data.applicationName }}.yaml
-      
+    - name: Run Helm Template
+      run: |
+        helm template $APP_NAME helmchart \
+           -f helmchart/env/$ENV/$APP_NAME.yaml
     # =========================
     # 7. JENKINS DSL CREATION
     # =========================
