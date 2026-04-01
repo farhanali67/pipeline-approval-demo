@@ -17,7 +17,7 @@ labels:
 replicaCount: 1
 
 image:
-  repository: test-app
+  repository: test-app-prod
 
 # =========================
 # Resources
