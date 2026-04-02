@@ -59,19 +59,15 @@ jobs:
          python3 -c "import jinja2, yaml; print('Python libs OK')"
 
   orchestrator:
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted  
     steps:
 
-    # =========================
-    # 0. DEBUG 
-    # =========================
+    # DEBUG 
+
     - name: Print Full Payload
       run: echo '${{ toJson(github.event.client_payload) }}'
 
-    # =========================
-    # 1. PARSE JSON
-    # =========================
+    #  PARSE JSON
     - name: Set Variables from Payload
       run: |
         echo "APP_NAME=${{ github.event.client_payload.data.applicationName }}" >> $GITHUB_ENV
@@ -95,63 +91,58 @@ jobs:
         echo "SECRET_ENABLED=true" >> $GITHUB_ENV
         echo "REPO_URL=${{ github.event.client_payload.data.repourl }}" >> $GITHUB_ENV"
 
-    # =========================
-    # 2. VALIDATION
-    # =========================
+
+    # VALIDATION
     - name: Validate Inputs
       run: |
         if [ -z "$APP_NAME" ]; then
           echo "❌ applicationName missing"; exit 1;
         fi
 
-    # =========================
-    # 3. DNS STAGE
-    # =========================
-    - name: DNS Provisioning
-      run: |
-        echo "🌐 DNS Stage..."
+    # DNS Job
 
-        if [ "$DNS_PUBLIC" = "true" ]; then
-          echo "Creating PUBLIC DNS for $APP-$ENV"
-        fi
+  dns-stage:
+    needs: orchestrator
+    uses: Tap-Payments/infraops-aws-iac/.github/workflows/new.yml@development
+    with:
+      target_repo: Tap-Payments/infraops-aws-iac
+      applicationName: ${{ github.event.client_payload.data.applicationName }}
+      DNSName: ${{ github.event.client_payload.data.applicationName }}.${{ github.event.client_payload.data.environment }}.tap.company.aws
+      lbUrl: test.dns.tap.company.aws
+    secrets:
+      TARGET_REPO_PAT: ${{ secrets.GITHUB_TOKEN }}
 
-        if [ "$DNS_PRIVATE" = "true" ]; then
-          echo "Creating PRIVATE DNS for $APP-$ENV"
-        fi
+    # DATABASE STAGE
 
-    # =========================
-    # 4. DATABASE STAGE
-    # =========================
-    - name: Database Setup
+  db-stage:
+   needs: dns-stage
+   runs-on: self-hosted  
+   steps:
+    - name: Database Stage 
       run: |
         echo "🗄 Database Stage..."
+        echo "Postgres: ${{ github.event.client_payload.data.database.postgresql }}"
+        echo "MySQL: ${{ github.event.client_payload.data.database.mysql }}"
+        echo "Skipping actual DB creation for now..."
 
-        if [ "$POSTGRES" = "true" ]; then
-          echo "Creating PostgreSQL DB"
-        fi
+    # QUEUE STAGE
 
-        if [ "$MYSQL" = "true" ]; then
-          echo "Creating MySQL DB"
-        fi
-
-    # =========================
-    # 5. QUEUE STAGE
-    # =========================
-    - name: Queue Setup
+  SQS-stage:
+   needs: db-stage
+   runs-on: self-hosted  
+   steps:
+    - name: SQS Stage
       run: |
-        echo "📩 Queue Stage..."
+        echo "SQS Stage..."
+        echo "SQS: ${{ github.event.client_payload.data.queue.sqs }}"
+        echo "Skipping actual SQS creation for now..."
 
-        if [ "$KAFKA" = "true" ]; then
-          echo "Setting up Kafka"
-        fi
+    # HELM STAGE
 
-        if [ "$SQS" = "true" ]; then
-          echo "Setting up SQS"
-        fi
-
-    # =========================
-    # 6. HELM STAGE
-    # =========================
+  helm-stage:
+    needs: SQS-stage
+    runs-on: self-hosted  
+    steps:
     - name: Checkout Target Branch
       uses: actions/checkout@v4
       with:
@@ -194,9 +185,8 @@ jobs:
           minimum-approvals: 1
           issue-title: "Review helmchart values "
           issue-body: "Approve to continue"
-    # =========================
-    # 7. JENKINS DSL CREATION
-    # =========================
+
+    #  JENKINS DSL CREATION
     - name: Set ENV variable
       run: |
         ENV_VALUE="${{ github.event.client_payload.data.environment }}"
@@ -216,9 +206,9 @@ jobs:
           --data-urlencode "CREDENTIALS_ID=Jenkins-github-connection" \
           --data-urlencode "SCRIPT_PATH=Jenkinsfile" -k 
 
-    # =========================
-    # 8. TRIGGER JENKINS JOB
-    # =========================
+
+    # TRIGGER JENKINS JOB
+
     - name: Trigger Jenkins Job
       run: |
         echo "🚀 Triggering Jenkins Job..."
@@ -226,9 +216,6 @@ jobs:
         curl -X POST "${{ secrets.JENKINS_URL }}/job/${APP}-eks-${ENV}/build" \
         --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_TOKEN }}"
 
-    # =========================
-    # 9. DONE
-    # =========================
     - name: Complete
       run: |
         echo "✅ Platform orchestration completed for $APP in $ENV"
