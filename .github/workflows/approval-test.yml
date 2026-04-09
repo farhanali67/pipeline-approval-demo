@@ -52,13 +52,21 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
-          echo "Waiting for PR #$PR_NUMBER to be merged..."
+          echo "Waiting for PR #$PR_NUMBER..."
 
           while true; do
-            MERGED_AT=$(gh pr view "$PR_NUMBER" --json mergedAt --jq '.mergedAt')
-            if [ -n "$MERGED_AT" ] && [ "$MERGED_AT" != "null" ]; then
-              echo "PR merged at $MERGED_AT"
+            STATE=$(gh pr view "$PR_NUMBER" --json state --jq '.state')
+
+            echo "state=$STATE"
+
+            if [ "$STATE" = "MERGED" ]; then
+              echo "PR merged ✅"
               break
+            fi
+
+            if [ "$STATE" = "CLOSED" ]; then
+              echo "PR closed without merge ❌"
+              exit 1
             fi
 
             echo "Still waiting..."
