@@ -1,0 +1,60 @@
+name: Wait for PR Merge
+description: "Waits until a Pull Request is merged before continuing"
+
+inputs:
+  token:
+    description: "GitHub token (pass via secrets)"
+    required: true
+  pr_number:
+    description: "Pull Request number"
+    required: true
+  poll_interval:
+    description: "Polling interval in seconds"
+    required: false
+    default: "30"
+  timeout:
+    description: "Maximum wait time in seconds"
+    required: false
+    default: "3600"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Wait for PR merge
+      shell: bash
+      run: |
+        set -e
+
+        TOKEN="${{ inputs.token }}"
+        PR_NUMBER="${{ inputs.pr_number }}"
+        INTERVAL="${{ inputs.poll_interval }}"
+        TIMEOUT="${{ inputs.timeout }}"
+
+        REPO="${{ github.repository }}"
+        ELAPSED=0
+
+        echo "⏳ Waiting for PR #$PR_NUMBER to be merged..."
+        echo "⏱ Interval: ${INTERVAL}s | Timeout: ${TIMEOUT}s"
+
+        while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
+
+          RESPONSE=$(curl -s \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/$REPO/pulls/$PR_NUMBER)
+
+          MERGED=$(echo "$RESPONSE" | jq -r '.merged')
+
+          if [ "$MERGED" = "true" ]; then
+            echo "✅ PR #$PR_NUMBER merged successfully!"
+            exit 0
+          fi
+
+          echo "⏱ Still waiting... (${ELAPSED}s elapsed)"
+          sleep "$INTERVAL"
+          ELAPSED=$((ELAPSED + INTERVAL))
+
+        done
+
+        echo "❌ Timeout reached. PR not merged."
+        exit 1
