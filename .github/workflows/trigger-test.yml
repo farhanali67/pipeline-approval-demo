@@ -7,19 +7,14 @@ permissions:
   contents: write
 
 jobs:
-  orchestrator:
+
+    orchestrator:
     runs-on: ubuntu-latest
 
     steps:
 
     # =========================
-    # 0. DEBUG (IMPORTANT)
-    # =========================
-    - name: Print Full Payload
-      run: echo '${{ toJson(github.event.client_payload) }}'
-
-    # =========================
-    # 1. PARSE JSON
+    # PARSE JSON
     # =========================
     - name: Set Variables from Payload
       run: |
