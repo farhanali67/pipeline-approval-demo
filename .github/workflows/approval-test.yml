@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GIT_TOKEN }}   # ✅ use PAT
+          token: ${{ secrets.GIT_TOKEN }}
 
       - name: Create branch & commit
         run: |
@@ -37,7 +37,7 @@ jobs:
       - name: Create PR
         id: create_pr
         env:
-          GH_TOKEN: ${{ secrets.GIT_TOKEN }}   # ✅ PAT here
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
           PR_URL=$(gh pr create \
             --title "Test PR" \
@@ -49,24 +49,31 @@ jobs:
 
           PR_NUMBER=$(echo "$PR_URL" | awk -F'/' '{print $NF}')
           echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_ENV
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
 
       - name: Wait for PR merge
         env:
-          GH_TOKEN: ${{ secrets.GIT_TOKEN }}   # ✅ PAT here
+          GH_TOKEN: ${{ secrets.GIT_TOKEN }}
         run: |
-          echo "Waiting for PR #$PR_NUMBER..."
+          echo "⏳ Waiting for PR #$PR_NUMBER to be merged..."
 
           while true; do
-            MERGED=$(gh pr view $PR_NUMBER --json merged -q .merged)
+            MERGED_AT=$(gh pr view $PR_NUMBER --json mergedAt -q .mergedAt)
 
-            if [ "$MERGED" = "true" ]; then
-              echo "PR merged ✅"
+            if [ "$MERGED_AT" != "null" ]; then
+              echo "✅ PR merged at $MERGED_AT"
               break
             fi
 
-            echo "Still waiting..."
+            echo "⏱ Still waiting..."
             sleep 15
           done
+
+      - name: Checkout merged code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GIT_TOKEN }}
+          ref: main
 
       - name: Run test after merge
         run: |
