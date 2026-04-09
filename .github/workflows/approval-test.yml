@@ -56,9 +56,6 @@ jobs:
 
           while true; do
             MERGED_AT=$(gh pr view "$PR_NUMBER" --json mergedAt --jq '.mergedAt')
-
-            echo "mergedAt=$MERGED_AT"
-
             if [ -n "$MERGED_AT" ] && [ "$MERGED_AT" != "null" ]; then
               echo "PR merged at $MERGED_AT"
               break
