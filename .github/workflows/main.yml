@@ -1,49 +1,18 @@
-name: Test GitHub Expression Logic
+name: Test Exact SECRET_ENABLED Expression
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: [secret-test]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create Test Payload
+      - name: Evaluate exact expression
         run: |
-          cat <<EOF > payload.json
-          {
-            "data": {
-              "applicationName":"checkout",
-              "environment":"dev",
-              "env": {
-                "JAVA_OPTS":"-Xms512m"
-              },
-              "secret": null
-            }
-          }
-          EOF
+          echo "SECRET_ENABLED=${{ (github.event.client_payload.data.env || github.event.client_payload.data.secret) && 'true' || 'false' }}" >> $GITHUB_ENV
 
-          cat payload.json
-
-      - name: Simulate GitHub Expression
-        run: |
-          ENV_EXISTS=$(jq '.data.env != null' payload.json)
-          SECRET_EXISTS=$(jq '.data.secret != null' payload.json)
-
-          echo "env exists: $ENV_EXISTS"
-          echo "secret exists: $SECRET_EXISTS"
-
-          # Equivalent of:
-          # (env || secret) && 'true' || 'false'
-
-          if [ "$ENV_EXISTS" = "true" ] || [ "$SECRET_EXISTS" = "true" ]; then
-             SECRET_ENABLED=true
-          else
-             SECRET_ENABLED=false
-          fi
-
-          echo "SECRET_ENABLED=$SECRET_ENABLED" >> $GITHUB_ENV
-
-      - name: Result
+      - name: Print result
         run: |
           echo "SECRET_ENABLED=$SECRET_ENABLED"
