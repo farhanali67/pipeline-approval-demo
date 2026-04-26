@@ -1,28 +1,38 @@
-name: Test Env Secret Objects
+name: Test Secret Enabled
 
 on:
- workflow_dispatch:
-   inputs:
-     has_env:
-       default: "false"
-     has_secret:
-       default: "false"
+  workflow_dispatch:
 
 jobs:
- test:
-   runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest
 
-   steps:
+    steps:
+      - name: Hardcode JSON and evaluate
+        run: |
+          cat <<EOF > payload.json
+          {
+            "data":{
+              "applicationName":"checkout",
+              "environment":"dev",
+              "env": {
+                "JAVA_OPTS":"-Xms512m"
+              },
+              "secret": null
+            }
+          }
+          EOF
 
-   - name: Simulate Logic
-     run: |
-       if [ "${{ github.event.inputs.has_env }}" = "true" ] || \
-          [ "${{ github.event.inputs.has_secret }}" = "true" ]; then
-         echo "SECRET_ENABLED=true" >> $GITHUB_ENV
-       else
-         echo "SECRET_ENABLED=false" >> $GITHUB_ENV
-       fi
+          echo "===== Payload ====="
+          cat payload.json
 
-   - name: Output
-     run: |
-       echo "SECRET_ENABLED=$SECRET_ENABLED"
+          # if env OR secret exists -> true else false
+          if jq -e '.data.env != null or .data.secret != null' payload.json >/dev/null; then
+            echo "SECRET_ENABLED=true" >> $GITHUB_ENV
+          else
+            echo "SECRET_ENABLED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Show Result
+        run: |
+          echo "SECRET_ENABLED=$SECRET_ENABLED"
