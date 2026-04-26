@@ -1,4 +1,4 @@
-name: Test Secret Enabled
+name: Test GitHub Expression Logic
 
 on:
   workflow_dispatch:
@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Hardcode JSON and evaluate
+      - name: Create Test Payload
         run: |
           cat <<EOF > payload.json
           {
-            "data":{
+            "data": {
               "applicationName":"checkout",
               "environment":"dev",
               "env": {
@@ -23,16 +23,27 @@ jobs:
           }
           EOF
 
-          echo "===== Payload ====="
           cat payload.json
 
-          # if env OR secret exists -> true else false
-          if jq -e '.data.env != null or .data.secret != null' payload.json >/dev/null; then
-            echo "SECRET_ENABLED=true" >> $GITHUB_ENV
+      - name: Simulate GitHub Expression
+        run: |
+          ENV_EXISTS=$(jq '.data.env != null' payload.json)
+          SECRET_EXISTS=$(jq '.data.secret != null' payload.json)
+
+          echo "env exists: $ENV_EXISTS"
+          echo "secret exists: $SECRET_EXISTS"
+
+          # Equivalent of:
+          # (env || secret) && 'true' || 'false'
+
+          if [ "$ENV_EXISTS" = "true" ] || [ "$SECRET_EXISTS" = "true" ]; then
+             SECRET_ENABLED=true
           else
-            echo "SECRET_ENABLED=false" >> $GITHUB_ENV
+             SECRET_ENABLED=false
           fi
 
-      - name: Show Result
+          echo "SECRET_ENABLED=$SECRET_ENABLED" >> $GITHUB_ENV
+
+      - name: Result
         run: |
           echo "SECRET_ENABLED=$SECRET_ENABLED"
