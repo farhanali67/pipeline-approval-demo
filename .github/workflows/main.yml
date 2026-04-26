@@ -1,40 +1,28 @@
-name: Test Secret Logic
+name: Test Env Secret Objects
 
 on:
-  workflow_dispatch:
-    inputs:
-      env_enable:
-        description: "Enable env secrets (true/false)"
-        required: false
-        default: "false"
-
-      secret_enable:
-        description: "Enable secret secrets (true/false)"
-        required: false
-        default: "false"
+ workflow_dispatch:
+   inputs:
+     has_env:
+       default: "false"
+     has_secret:
+       default: "false"
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+ test:
+   runs-on: ubuntu-latest
 
-    steps:
-      - name: Evaluate Secret Logic
-        run: |
-          echo "Input env_enable=${{ github.event.inputs.env_enable }}"
-          echo "Input secret_enable=${{ github.event.inputs.secret_enable }}"
+   steps:
 
-          echo "SECRET_ENABLED=${{ github.event.inputs.env_enable == 'true' || github.event.inputs.secret_enable == 'true' }}" >> $GITHUB_ENV
+   - name: Simulate Logic
+     run: |
+       if [ "${{ github.event.inputs.has_env }}" = "true" ] || \
+          [ "${{ github.event.inputs.has_secret }}" = "true" ]; then
+         echo "SECRET_ENABLED=true" >> $GITHUB_ENV
+       else
+         echo "SECRET_ENABLED=false" >> $GITHUB_ENV
+       fi
 
-      - name: Print Result
-        run: |
-          echo "SECRET_ENABLED=$SECRET_ENABLED"
-
-      - name: Conditional Test
-        if: env.SECRET_ENABLED == 'true'
-        run: |
-          echo "Secrets would be enabled"
-
-      - name: Conditional False Test
-        if: env.SECRET_ENABLED != 'true'
-        run: |
-          echo "Secrets disabled"
+   - name: Output
+     run: |
+       echo "SECRET_ENABLED=$SECRET_ENABLED"
