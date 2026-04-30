@@ -7,7 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
+    if:    github.event.client_payload.data.database.mongodb ||    github.event.client_payload.data.database.postgresql ||   github.event.client_payload.data.cache.redis ||    github.event.client_payload.data.queue.kafka
     steps:
       - name: Evaluate exact expression
         run: |
