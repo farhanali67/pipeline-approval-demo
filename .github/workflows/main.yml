@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Evaluate exact expression
         run: |
-          echo "SECRET_ENABLED=${{ (github.event.client_payload.data.env || github.event.client_payload.data.secret) && 'true' || 'false' }}" >> $GITHUB_ENV
+          echo "SECRET_ENABLED=${{ ( github.event.client_payload.data.database.postgresql == true || github.event.client_payload.data.database.mysql == true || github.event.client_payload.data.database.mongodb == true || github.event.client_payload.data.cache.redis == true || github.event.client_payload.data.queue.kafka == true ||  github.event.client_payload.data.queue.sqs == true ) && 'true' || 'false' }}" >> $GITHUB_ENV
 
       - name: Print result
         run: |
